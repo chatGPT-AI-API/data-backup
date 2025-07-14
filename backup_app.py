@@ -8,7 +8,7 @@ class BackupFrame(wx.Frame):
     """主程序窗口，用于备份应用数据"""
     
     def __init__(self):
-        super().__init__(None, title='应用数据备份工具', size=(400, 300))
+        super().__init__(None, title='应用数据备份工具', size=wx.Size(400, 300))
         self.panel = wx.Panel(self)
         self.init_ui()
         self.Centre()
@@ -20,6 +20,8 @@ class BackupFrame(wx.Frame):
         
         # 源目录选择
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        label_src = wx.StaticText(self.panel, label="源目录：")
+        hbox1.Add(label_src, flag=wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, border=5)
         self.src_dir = wx.TextCtrl(self.panel, style=wx.TE_READONLY)
         btn_choose_src = wx.Button(self.panel, label='选择源目录')
         btn_choose_src.Bind(wx.EVT_BUTTON, self.on_choose_src)
@@ -28,6 +30,8 @@ class BackupFrame(wx.Frame):
 
         # 目标目录选择
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        label_dest = wx.StaticText(self.panel, label="目标目录：")
+        hbox2.Add(label_dest, flag=wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, border=5)
         self.dest_dir = wx.TextCtrl(self.panel, style=wx.TE_READONLY)
         btn_choose_dest = wx.Button(self.panel, label='选择目标目录')
         btn_choose_dest.Bind(wx.EVT_BUTTON, self.on_choose_dest)
