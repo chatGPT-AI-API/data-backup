@@ -38,12 +38,18 @@ class BackupFrame(wx.Frame):
         hbox2.Add(self.dest_dir, proportion=1, flag=wx.EXPAND)
         hbox2.Add(btn_choose_dest, flag=wx.LEFT, border=5)
 
+        # 加密选项
+        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.encrypt_cb = wx.CheckBox(self.panel, label='加密备份')
+        hbox3.Add(self.encrypt_cb, flag=wx.ALL, border=5)
+        
         # 备份按钮
         btn_backup = wx.Button(self.panel, label='开始备份')
         btn_backup.Bind(wx.EVT_BUTTON, self.on_backup)
 
         vbox.Add(hbox1, flag=wx.EXPAND|wx.ALL, border=10)
         vbox.Add(hbox2, flag=wx.EXPAND|wx.ALL, border=10)
+        vbox.Add(hbox3, flag=wx.EXPAND|wx.ALL, border=10)
         vbox.Add(btn_backup, flag=wx.ALIGN_CENTER|wx.TOP, border=20)
 
         self.panel.SetSizer(vbox)
@@ -66,10 +72,20 @@ class BackupFrame(wx.Frame):
         """执行备份操作"""
         src = self.src_dir.GetValue()
         dest = self.dest_dir.GetValue()
+        encrypt = self.encrypt_cb.GetValue()
+        password = None
 
         if not src or not dest:
             wx.MessageBox('请先选择源目录和目标目录', '错误', wx.OK|wx.ICON_ERROR)
             return
+            
+        if encrypt:
+            dlg = wx.TextEntryDialog(self, '请输入加密密码', '密码输入')
+            if dlg.ShowModal() == wx.ID_OK:
+                password = dlg.GetValue().encode('utf-8')
+            dlg.Destroy()
+            if not password:
+                return
 
         try:
             # 创建带时间戳的备份目录
@@ -90,12 +106,16 @@ class BackupFrame(wx.Frame):
             # 创建压缩包
             zip_path = os.path.join(dest, f"{backup_name}.zip")
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                if encrypt and password:
+                    zipf.setpassword(password)
                 for root, dirs, files in os.walk(backup_path):
                     for file in files:
                         file_path = os.path.join(root, file)
                         zipf.write(file_path, os.path.relpath(file_path, dest))
 
-            wx.MessageBox(f'备份成功！\n保存路径: {zip_path}', '完成', wx.OK|wx.ICON_INFORMATION)
+            wx.MessageBox(f'备份成功！\n保存路径: {zip_path}' +
+                         ('\n已启用加密保护' if encrypt else ''),
+                         '完成', wx.OK|wx.ICON_INFORMATION)
 
         except Exception as e:
             wx.MessageBox(f'备份失败: {str(e)}', '错误', wx.OK|wx.ICON_ERROR)
